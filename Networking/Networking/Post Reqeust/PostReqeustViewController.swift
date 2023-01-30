@@ -56,7 +56,37 @@ class PostReqeustViewController: UIViewController {
       }
       
       // Code Input Point #1
-      
+       var request = URLRequest(url: url)
+       
+       request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+       // 서버가 json 데이터만 받도록 고정되어있으므로 위와 같이 헤더 설정 (서버: form-data 형태로는 못 받는 상태)
+       request.httpMethod = "POST"
+       request.httpBody = encodedData()
+       
+       let task = URLSession.shared.dataTask(with:  request) { (data, response, error) in
+           if let error = error {
+               self.showErrorAlert(with: error.localizedDescription)
+               print(error)
+               return
+           }
+           
+           guard let httpResponse = response as? HTTPURLResponse else {
+               self.showErrorAlert(with: "Invalid Response")
+               return
+           }
+           
+           guard (200...299).contains(httpResponse.statusCode) else {
+               self.showErrorAlert(with: "\(httpResponse.statusCode)")
+               return
+           }
+           
+           guard let data = data, let str = String(data: data, encoding: .utf8) else {
+               fatalError("Invalid Data")
+           }
+           
+           self.showInfoAlert(with: str)
+       }
+       task.resume()
       // Code Input Point #1
    }
 }
